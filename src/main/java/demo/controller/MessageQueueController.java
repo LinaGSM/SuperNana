@@ -31,15 +31,25 @@ public class MessageQueueController {
         queue.setId("main");
         qRepo.save(queue);
 
-        queue.addMessage(hi);
-        queue.addMessage(hello);
+        //queue.addMessage(hi);
+        //queue.addMessage(hello);
+
+        hi.setQueue(queue);
+        hello.setQueue(queue);
+
 
         Message bonjour = new Message(3, "Bonjour");
         MessageQueue queue2 = new MessageQueue();
         queue2.setId("secondary");
         qRepo.save(queue2);
 
-        queue2.addMessage(bonjour);
+        //queue2.addMessage(bonjour);
+        //queue2.addMessage(hi);
+        //queue2.addMessage(hello);
+
+        bonjour.setQueue(queue2);
+        hi.setQueue(queue2);
+        hello.setQueue(queue2);
 
         mRepo.save(hi);
         mRepo.save(hello);
@@ -84,15 +94,40 @@ public class MessageQueueController {
     @RequestMapping(value = "/{id}/messages/{msg}", method = RequestMethod.DELETE)
     public ResponseEntity<Message> deleteMessage(@PathVariable("id") String id, @PathVariable("msg") long mid) {
         Optional<MessageQueue> o = qRepo.findById(id);
+
         if (o.isPresent()) {
-            MessageQueue q = o.get();
-            Optional<Message> m = q.removeMessage(mid);
-            if (m.isPresent()) {
-                qRepo.save(q);
-                mRepo.delete(m.get());
+            MessageQueue queue = o.get();
+            Optional<Message> messageToRemove = queue.removeMessage(mid);
+
+            if (messageToRemove.isPresent()) {
+                Message message = messageToRemove.get();
+
+                // Check if the message exists in another queue
+                boolean existsInOtherQueues = qRepo.findAllBy().stream()
+                        .anyMatch(q -> q.getMessages().contains(message));
+
+                if (!existsInOtherQueues) {
+                    mRepo.delete(message); // Only delete if it doesn't exist in other queues
+                }
+
+                qRepo.save(queue); // Always save queue changes
                 return new ResponseEntity<>(null, HttpStatus.OK);
             }
         }
+
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
