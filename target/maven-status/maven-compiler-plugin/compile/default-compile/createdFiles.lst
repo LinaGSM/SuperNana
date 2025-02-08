@@ -1,0 +1,4 @@
+demo\model\Message.class
+demo\controller\MessageQueueController.class
+demo\DemoApp.class
+demo\model\MessageQueue.class
