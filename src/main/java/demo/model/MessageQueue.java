@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -15,7 +16,8 @@ public class MessageQueue {
     @Id
     private String id;
 
-    @OneToMany
+
+    @OneToMany(mappedBy = "queue", cascade = CascadeType.ALL) // ✅ Fixed "topic" to "queue"
     @JsonManagedReference
     private List<Message> messages;
 
@@ -44,8 +46,8 @@ public class MessageQueue {
         message.setQueue(this);
     }
 
-    public Message nextMessage() {
-        return this.messages.get(0);
+    public Optional<Message> nextMessage() { // ✅ Fixed to return Optional<Message>
+        return messages.isEmpty() ? Optional.empty() : Optional.of(messages.get(0));
     }
 
     public Optional<Message> removeMessage(long mid) {
