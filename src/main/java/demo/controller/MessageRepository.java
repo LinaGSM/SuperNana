@@ -8,9 +8,11 @@ import demo.model.MessageQueue;
 
 public interface MessageRepository extends CrudRepository<Message, Long> {
 
-	// List<Message> findByLastName(String lastName);
-
 	Message findById(long id);
 
 	List<Message> findAllByQueue(MessageQueue queue);
+
+	List<Message> findAllByQueueOrderByIdAsc(MessageQueue queue); // ✅ FIFO retrieval
+	List<Message> findByIdGreaterThanEqual(Long startId); // ✅ Retrieve messages from a given ID
+	List<Message> findByTextContaining(String keyword); // ✅ Search messages by content
 }

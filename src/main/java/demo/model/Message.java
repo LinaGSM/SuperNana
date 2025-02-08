@@ -2,31 +2,51 @@ package demo.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Message {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
     private String text;
+    private boolean isRead = false;
+    private int indexInTopic; // ✅ Internal numbering within a topic
 
     @ManyToOne
-    @JsonBackReference
+    @JsonBackReference // ✅ Prevents infinite recursion with MessageQueue
     private MessageQueue queue;
 
-    public Message() {
-    }
+    @ManyToMany
+    @JoinTable(
+            name = "message_topic",
+            joinColumns = @JoinColumn(name = "message_id"),
+            inverseJoinColumns = @JoinColumn(name = "topic_id")
+    )
+    @JsonBackReference // ✅ Prevents infinite recursion
+    private Set<Topic> topics = new HashSet<>();
 
-    public Message(long id, String text) {
-        this.id = id;
+    public Message() {}
+
+    public Message(String text) {
         this.text = text;
     }
 
+    public Message(String text, MessageQueue queue) {
+        this.text = text;
+        this.queue = queue;
+    }
+
+    public Message(String text, MessageQueue queue, Set<Topic> topics) {
+        this.text = text;
+        this.queue = queue;
+        this.topics = topics;
+    }
+
+    // ✅ Getter & Setter for ID
     public long getId() {
         return id;
     }
@@ -35,6 +55,7 @@ public class Message {
         this.id = id;
     }
 
+    // ✅ Getter & Setter for Text
     public String getText() {
         return text;
     }
@@ -43,11 +64,51 @@ public class Message {
         this.text = text;
     }
 
+    // ✅ Getter & Setter for Queue
     public MessageQueue getQueue() {
         return queue;
     }
 
     public void setQueue(MessageQueue queue) {
         this.queue = queue;
+    }
+
+    // ✅ Getter & Setter for Read Status
+    public boolean isRead() {
+        return isRead;
+    }
+
+    public void markAsRead() {
+        this.isRead = true;
+    }
+
+    // ✅ Getter & Setter for `indexInTopic`
+    public int getIndexInTopic() {
+        return indexInTopic;
+    }
+
+    public void setIndexInTopic(int indexInTopic) {
+        this.indexInTopic = indexInTopic;
+    }
+
+    // ✅ Getter & Setter for Topics
+    public Set<Topic> getTopics() {
+        return topics;
+    }
+
+    public void setTopics(Set<Topic> topics) {
+        this.topics = topics;
+    }
+
+    // ✅ Helper Methods for Managing Topics
+    public void addTopic(Topic topic) {
+        this.topics.add(topic);
+        topic.getMessages().add(this);
+        this.indexInTopic = topic.getMessages().size(); // ✅ Assigns sequential index
+    }
+
+    public void removeTopic(Topic topic) {
+        this.topics.remove(topic);
+        topic.getMessages().remove(this);
     }
 }
