@@ -46,6 +46,14 @@ public class MessageQueueController {
                 new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+        // ✅ Read a message and update metadata
+    @GetMapping("/messages/{messageId}/read")
+    public ResponseEntity<Message> readMessage(@PathVariable("messageId") long messageId) {
+        Message message = messageService.readMessage(messageId);
+        return message != null ? new ResponseEntity<>(message, HttpStatus.OK) :
+                                 new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
     // ✅ Get the next message in a queue (FIFO order)
     @GetMapping("/{id}/messages/next")
     public ResponseEntity<Message> getNextMessage(@PathVariable("id") String id) {
