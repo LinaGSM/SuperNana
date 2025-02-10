@@ -4,150 +4,83 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import demo.model.MessageQueue;
-import jakarta.annotation.PostConstruct;
 import demo.model.Message;
+import demo.service.MessageService;
+import demo.service.QueueService;
 
 @RestController
 @RequestMapping("/queues")
 public class MessageQueueController {
-    @Autowired
-    MessageRepository mRepo;
-    @Autowired
-    QueueRepository qRepo;
 
+    @Autowired
+    private MessageService messageService;
+
+    @Autowired
+    private QueueService queueService;
+
+    // ✅ Initialize test data (for demo purposes)
     @PostConstruct
     private void init() {
-        Message hi = new Message("Hi");
-        Message hello = new Message("Hello");
-
-        MessageQueue queue = new MessageQueue();
-        queue.setId("main");
-        qRepo.save(queue);
-
-        // ✅ Ensure messages are linked before saving
-        hi.setQueue(queue);
-        hello.setQueue(queue);
-        hi.markAsRead();
-
-        queue.addMessage(hi);
-        queue.addMessage(hello);
-
-        // ✅ Corrected Message constructors
-        Message bonjour = new Message("Bonjour");
-        Message hii = new Message("Hi");
-        Message helllo = new Message("Hello");
-
-        MessageQueue queue2 = new MessageQueue();
-        queue2.setId("secondary");
-        qRepo.save(queue2);
-
-        bonjour.setQueue(queue2);
-        hii.setQueue(queue2);
-        helllo.setQueue(queue2);
-
-        queue2.addMessage(bonjour);
-        queue2.addMessage(hii);
-        queue2.addMessage(helllo);
-
-        // ✅ Save messages AFTER setting their queue
-        mRepo.save(hi);
-        mRepo.save(hello);
-        mRepo.save(bonjour);
-        mRepo.save(hii);
-        mRepo.save(helllo);
-        qRepo.save(queue);
-        qRepo.save(queue2);
+        queueService.initializeTestData();
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    // ✅ Get all queues with an optional filter by prefix
+    @GetMapping
     public ResponseEntity<Collection<MessageQueue>> getQueues(
             @RequestParam(value = "startWith", defaultValue = "") String prefix) {
-        return new ResponseEntity<>(
-                qRepo.findAllBy().stream().filter(x -> x.getId().startsWith(prefix)).toList(), HttpStatus.OK);
+        return new ResponseEntity<>(queueService.getAllQueues(prefix), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}/messages", method = RequestMethod.GET)
+    // ✅ Get all messages from a queue
+    @GetMapping("/{id}/messages")
     public ResponseEntity<List<Message>> getMessages(@PathVariable("id") String id) {
-        Optional<MessageQueue> queue = qRepo.findById(id);
-        if (queue.isPresent()) {
-            List<Message> messages = mRepo.findAllByQueueOrderByIdAsc(queue.get()); // ✅ Ensure FIFO order
-            return new ResponseEntity<>(messages, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        List<Message> messages = messageService.getMessagesByQueue(id);
+        return messages != null ? new ResponseEntity<>(messages, HttpStatus.OK) :
+                new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(value = "/{id}/messages/next", method = RequestMethod.GET)
+    // ✅ Get the next message in a queue (FIFO order)
+    @GetMapping("/{id}/messages/next")
     public ResponseEntity<Message> getNextMessage(@PathVariable("id") String id) {
-        Optional<MessageQueue> queue = qRepo.findById(id);
-        if (queue.isPresent()) {
-            List<Message> messages = mRepo.findAllByQueueOrderByIdAsc(queue.get());
-            if (!messages.isEmpty()) {
-                return new ResponseEntity<>(messages.get(0), HttpStatus.OK);
-            }
-        }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        Optional<Message> message = messageService.getNextMessage(id);
+        return message.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @RequestMapping(value = "/{id}/messages", method = RequestMethod.POST)
-    public ResponseEntity<Message> addMessage(@PathVariable("id") String id, @RequestBody String contentString) {
-        Optional<MessageQueue> o = qRepo.findById(id);
-        if (o.isPresent()) {
-            MessageQueue q = o.get();
-            Message message = new Message(contentString);
-            message.setQueue(q); // ✅ Ensure message is linked to queue
-            q.addMessage(message);
-            mRepo.save(message);
-            return new ResponseEntity<>(message, HttpStatus.CREATED);
-        }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    // ✅ Add a new message to a queue
+    @PostMapping("/{id}/messages")
+    public ResponseEntity<Message> addMessage(@PathVariable("id") String id, @RequestBody String content) {
+        Optional<Message> message = messageService.addMessageToQueue(id, content);
+        return message.map(value -> new ResponseEntity<>(value, HttpStatus.CREATED))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @RequestMapping(value = "/{id}/messages/{msg}", method = RequestMethod.DELETE)
-    public ResponseEntity<Message> deleteMessage(@PathVariable("id") String id, @PathVariable("msg") long mid) {
-        Optional<MessageQueue> o = qRepo.findById(id);
-        if (o.isPresent()) {
-            MessageQueue queue = o.get();
-            Optional<Message> messageToRemove = queue.removeMessage(mid);
-
-            if (messageToRemove.isPresent()) {
-                Message message = messageToRemove.get();
-
-                // ✅ Check if the message has been read before deleting
-                if (!message.isRead()) {
-                    return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
-                }
-
-                boolean existsInOtherQueues = qRepo.findAllBy().stream()
-                        .anyMatch(q -> q.getMessages().contains(message));
-
-                if (!existsInOtherQueues) {
-                    mRepo.delete(message); // ✅ Only delete if it doesn't exist in other queues
-                }
-
-                qRepo.save(queue); // Always save queue changes
-                return new ResponseEntity<>(null, HttpStatus.OK);
-            }
-        }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    // ✅ Delete a message from a queue only if it has been read and isn't in other queues
+    @DeleteMapping("/{id}/messages/{msgId}")
+    public ResponseEntity<String> deleteMessage(@PathVariable("id") String id, @PathVariable("msgId") long msgId) {
+        String result = messageService.deleteMessage(id, msgId);
+        return result.equals("SUCCESS") ? new ResponseEntity<>(HttpStatus.OK) :
+                new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
     }
 
     // ✅ Retrieve messages starting from a given number
-    @RequestMapping(value = "/messages", method = RequestMethod.GET)
+    @GetMapping("/messages")
     public ResponseEntity<List<Message>> getMessagesFrom(@RequestParam("startFrom") Long startId) {
-        List<Message> messages = mRepo.findByIdGreaterThanEqual(startId);
+        List<Message> messages = messageService.getMessagesFrom(startId);
         return new ResponseEntity<>(messages, HttpStatus.OK);
     }
 
     // ✅ Search messages by partial content
-    @RequestMapping(value = "/messages/search", method = RequestMethod.GET)
+    @GetMapping("/messages/search")
     public ResponseEntity<List<Message>> searchMessages(@RequestParam("content") String keyword) {
-        List<Message> messages = mRepo.findByTextContaining(keyword);
+        List<Message> messages = messageService.searchMessages(keyword);
         return new ResponseEntity<>(messages, HttpStatus.OK);
     }
 }
