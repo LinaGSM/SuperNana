@@ -6,12 +6,20 @@ import demo.model.Message;
 import demo.model.MessageQueue;
 import demo.controller.MessageRepository;
 import demo.controller.QueueRepository;
+
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @Service
 public class MessageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
+
 
     @Autowired
     private MessageRepository messageRepo;
@@ -44,34 +52,61 @@ public class MessageService {
         return Optional.empty();
     }
 
-    // ✅ Delete a message only if it has been read and is not linked to another queue
-    public String deleteMessage(String queueId, long messageId) {
-        Optional<MessageQueue> queueOpt = queueRepo.findById(queueId);
-        if (queueOpt.isPresent()) {
-            MessageQueue queue = queueOpt.get();
-            Optional<Message> messageOpt = queue.removeMessage(messageId);
+    // ✅ Mark message as read and log the event
+    public Message readMessage(long messageId) {
+        Optional<Message> messageOpt = Optional.ofNullable(messageRepo.findById(messageId));
+        if (messageOpt.isPresent()) {
+            Message message = messageOpt.get();
+            message.markAsRead();
+            messageRepo.save(message);
 
-            if (messageOpt.isPresent()) {
-                Message message = messageOpt.get();
+            // ✅ Logging message read event
+            logger.info("Message {} read {} times. First accessed at: {}",
+                    messageId, message.getReadCount(), message.getFirstAccessedAt());
 
-                // Check if the message has been read before deleting
-                if (!message.isRead()) {
-                    return "Message cannot be deleted because it has not been read.";
-                }
+            return message;
+        }
+        return null;
+    }
 
-                // Check if the message exists in other queues
-                boolean existsInOtherQueues = queueRepo.findAllBy().stream()
-                        .anyMatch(q -> q.getMessages().contains(message));
+    public String deleteMessage(Long messageId, String queueId) {
+        Optional<Message> messageOpt = messageRepo.findById(messageId);
+        if (messageOpt.isEmpty()) {
+            return "Message not found.";
+        }
 
-                if (!existsInOtherQueues) {
-                    messageRepo.delete(message);
-                }
+        Message message = messageOpt.get();
 
+        // ✅ Prevent deletion if the message has not been read
+        if (!message.isRead()) {
+            return "Message cannot be deleted because it has not been read.";
+        }
+
+        // ✅ Calculate deletion time
+        LocalDateTime now = LocalDateTime.now();
+        Duration timeToDelete = Duration.between(message.getCreatedAt(), now);
+
+        // ✅ Check if the message exists in other queues
+        boolean existsInOtherQueues = queueRepo.findAllBy().stream()
+                .anyMatch(q -> q.getMessages().contains(message));
+
+        // ✅ If the message exists in another queue, do not delete it completely
+        if (!existsInOtherQueues) {
+            messageRepo.delete(message);
+            logger.info("Deleted Message {} after {} seconds. Read count: {}",
+                    messageId, timeToDelete.getSeconds(), message.getReadCount());
+        } else if (queueId != null) {
+            // ✅ Remove the message only from the specified queue
+            Optional<MessageQueue> queueOpt = queueRepo.findById(queueId);
+            if (queueOpt.isPresent()) {
+                MessageQueue queue = queueOpt.get();
+                queue.removeMessage(messageId);
                 queueRepo.save(queue);
-                return "SUCCESS";
+                return "Message removed from queue but exists in other queues.";
             }
         }
-        return "Message not found.";
+
+        return "SUCCESS";
     }
 
     // ✅ Get messages starting from a given ID
