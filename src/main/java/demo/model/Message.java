@@ -1,8 +1,9 @@
 package demo.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,11 +30,43 @@ public class Message {
     @JsonBackReference // ✅ Prevents infinite recursion
     private Set<Topic> topics = new HashSet<>();
 
-    public Message() {}
+    // ✅ Meta-data fields
+    private LocalDateTime createdAt;      // Time message was created
+    private LocalDateTime firstAccessedAt;// Time message was first read
+    private int readCount = 0;            // Number of times message was read
+
+    public Message() {
+        this.createdAt = LocalDateTime.now(); // ✅ Auto-assign creation time
+    }
+
 
     public Message(String text) {
         this.text = text;
+        this.createdAt = LocalDateTime.now();
     }
+
+    // ✅ Update metadata when message is read
+    public void markAsRead(boolean b) {
+        this.isRead = true;
+        this.readCount++;
+        if (this.firstAccessedAt == null) {
+            this.firstAccessedAt = LocalDateTime.now();
+        }
+    }
+
+    // ✅ Getters and setters
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getFirstAccessedAt() {
+        return firstAccessedAt;
+    }
+
+    public int getReadCount() {
+        return readCount;
+    }
+
 
     public Message(String text, MessageQueue queue) {
         this.text = text;
