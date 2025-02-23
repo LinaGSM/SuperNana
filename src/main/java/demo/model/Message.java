@@ -43,14 +43,6 @@ public class Message {
         this.createdAt = LocalDateTime.now();
     }
 
-    public void markAsRead(boolean b) {
-        this.isRead = true;
-        this.readCount++;
-        if (this.firstAccessedAt == null) {
-            this.firstAccessedAt = LocalDateTime.now();
-        }
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -105,6 +97,9 @@ public class Message {
     public void markAsRead() {
         this.isRead = true;
         this.readCount++;
+        if (this.firstAccessedAt == null) {
+            this.firstAccessedAt = LocalDateTime.now();
+        }
     }
 
     public int getIndexInTopic() {
