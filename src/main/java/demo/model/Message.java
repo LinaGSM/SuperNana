@@ -15,10 +15,10 @@ public class Message {
 
     private String text;
     private boolean isRead = false;
-    private int indexInTopic; // ✅ Internal numbering within a topic
+    private int indexInTopic;
 
     @ManyToOne
-    @JsonBackReference // ✅ Prevents infinite recursion with MessageQueue
+    @JsonBackReference
     private MessageQueue queue;
 
     @ManyToMany
@@ -27,25 +27,22 @@ public class Message {
             joinColumns = @JoinColumn(name = "message_id"),
             inverseJoinColumns = @JoinColumn(name = "topic_id")
     )
-    @JsonBackReference // ✅ Prevents infinite recursion
+    @JsonBackReference
     private Set<Topic> topics = new HashSet<>();
 
-    // ✅ Meta-data fields
-    private LocalDateTime createdAt;      // Time message was created
-    private LocalDateTime firstAccessedAt;// Time message was first read
-    private int readCount = 0;            // Number of times message was read
+    private LocalDateTime createdAt;
+    private LocalDateTime firstAccessedAt;
+    private int readCount = 0;
 
     public Message() {
-        this.createdAt = LocalDateTime.now(); // ✅ Auto-assign creation time
+        this.createdAt = LocalDateTime.now();
     }
-
 
     public Message(String text) {
         this.text = text;
         this.createdAt = LocalDateTime.now();
     }
 
-    // ✅ Update metadata when message is read
     public void markAsRead(boolean b) {
         this.isRead = true;
         this.readCount++;
@@ -54,7 +51,6 @@ public class Message {
         }
     }
 
-    // ✅ Getters and setters
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -67,7 +63,6 @@ public class Message {
         return readCount;
     }
 
-
     public Message(String text, MessageQueue queue) {
         this.text = text;
         this.queue = queue;
@@ -79,7 +74,6 @@ public class Message {
         this.topics = topics;
     }
 
-    // ✅ Getter & Setter for ID
     public long getId() {
         return id;
     }
@@ -88,7 +82,6 @@ public class Message {
         this.id = id;
     }
 
-    // ✅ Getter & Setter for Text
     public String getText() {
         return text;
     }
@@ -97,7 +90,6 @@ public class Message {
         this.text = text;
     }
 
-    // ✅ Getter & Setter for Queue
     public MessageQueue getQueue() {
         return queue;
     }
@@ -106,16 +98,15 @@ public class Message {
         this.queue = queue;
     }
 
-    // ✅ Getter & Setter for Read Status
     public boolean isRead() {
         return isRead;
     }
 
     public void markAsRead() {
         this.isRead = true;
+        this.readCount++;
     }
 
-    // ✅ Getter & Setter for `indexInTopic`
     public int getIndexInTopic() {
         return indexInTopic;
     }
@@ -124,7 +115,6 @@ public class Message {
         this.indexInTopic = indexInTopic;
     }
 
-    // ✅ Getter & Setter for Topics
     public Set<Topic> getTopics() {
         return topics;
     }
@@ -133,11 +123,10 @@ public class Message {
         this.topics = topics;
     }
 
-    // ✅ Helper Methods for Managing Topics
     public void addTopic(Topic topic) {
         this.topics.add(topic);
         topic.getMessages().add(this);
-        this.indexInTopic = topic.getMessages().size(); // ✅ Assigns sequential index
+        this.indexInTopic = topic.getMessages().size();
     }
 
     public void removeTopic(Topic topic) {

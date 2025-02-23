@@ -17,7 +17,7 @@ public class MessageQueue {
     private String id;
 
 
-    @OneToMany(mappedBy = "queue", cascade = CascadeType.ALL) // ✅ Fixed "topic" to "queue"
+    @OneToMany(mappedBy = "queue", cascade = CascadeType.ALL) // Fixed "topic" to "queue"
     @JsonManagedReference
     private List<Message> messages;
 
@@ -46,7 +46,7 @@ public class MessageQueue {
         message.setQueue(this);
     }
 
-    public Optional<Message> nextMessage() { // ✅ Fixed to return Optional<Message>
+    public Optional<Message> nextMessage() { // Fixed to return Optional<Message>
         return messages.isEmpty() ? Optional.empty() : Optional.of(messages.get(0));
     }
 

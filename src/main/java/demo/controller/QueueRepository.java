@@ -8,18 +8,18 @@ import demo.model.Message;
 
 public interface QueueRepository extends CrudRepository<MessageQueue, String> {
 
-	// ✅ Find a queue by ID
+	// Find a queue by ID
 	Optional<MessageQueue> findById(String id);
 
-	// ✅ Get all queues
+	// Get all queues
 	List<MessageQueue> findAllBy();
 
-	// ✅ Check if a queue exists by ID
+	// Check if a queue exists by ID
 	boolean existsById(String id);
 
-	// ✅ Get all queues that contain a specific message
+	// Get all queues that contain a specific message
 	List<MessageQueue> findByMessagesContaining(Message message);
 
-	// ✅ Get queues where the ID starts with a certain prefix
+	// Get queues where the ID starts with a certain prefix
 	List<MessageQueue> findByIdStartingWith(String prefix);
 }

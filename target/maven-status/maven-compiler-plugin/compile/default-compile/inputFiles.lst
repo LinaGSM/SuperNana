@@ -1,4 +1,11 @@
-C:\Lina\MASTER\S2\Software_Architecture\MessagesQueues\src\main\java\demo\DemoApp.java
-C:\Lina\MASTER\S2\Software_Architecture\MessagesQueues\src\main\java\demo\controller\MessageQueueController.java
-C:\Lina\MASTER\S2\Software_Architecture\MessagesQueues\src\main\java\demo\model\MessageQueue.java
-C:\Lina\MASTER\S2\Software_Architecture\MessagesQueues\src\main\java\demo\model\Message.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\controller\MessageQueueController.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\DemoApp.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\model\Message.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\service\MessageService.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\service\QueueService.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\model\MessageQueue.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\controller\QueueRepository.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\controller\TopicRepository.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\controller\MessageRepository.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\controller\TopicController.java
+C:\Users\33767\IdeaProjects\SuperNana\src\main\java\demo\model\Topic.java

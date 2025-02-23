@@ -25,7 +25,7 @@ public class TopicController {
     @Autowired
     private MessageRepository messageRepo;
 
-    // ✅ Create a new topic
+    // Create a new topic
     @PostMapping
     public ResponseEntity<Topic> createTopic(@RequestBody String name) {
         Topic topic = new Topic(name);
@@ -33,7 +33,7 @@ public class TopicController {
         return new ResponseEntity<>(topic, HttpStatus.CREATED);
     }
 
-    // ✅ Add a message to a topic & assign indexInTopic
+    // Add a message to a topic & assign indexInTopic
     @PostMapping("/{topicId}/messages/{messageId}")
     public ResponseEntity<Topic> addMessageToTopic(
             @PathVariable Long topicId, @PathVariable Long messageId) {
@@ -45,7 +45,7 @@ public class TopicController {
             Topic topic = topicOpt.get();
             Message message = messageOpt.get();
 
-            // ✅ Assign sequential `indexInTopic`
+            // Assign sequential `indexInTopic`
             message.setIndexInTopic(topic.getMessages().size() + 1);
 
             topic.addMessage(message);
@@ -58,7 +58,7 @@ public class TopicController {
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    // ✅ Get messages in a topic (ordered by `indexInTopic`)
+    // Get messages in a topic (ordered by `indexInTopic`)
     @GetMapping("/{topicId}/messages")
     public ResponseEntity<List<Message>> getMessagesInTopic(@PathVariable Long topicId) {
         Optional<Topic> topicOpt = topicRepo.findById(topicId);
@@ -77,7 +77,7 @@ public class TopicController {
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    // ✅ Remove a message from a topic & update indices
+    // Remove a message from a topic & update indices
     @DeleteMapping("/{topicId}/messages/{messageId}")
     public ResponseEntity<Topic> removeMessageFromTopic(@PathVariable Long topicId, @PathVariable Long messageId) {
         Optional<Topic> topicOpt = topicRepo.findById(topicId);
@@ -87,10 +87,10 @@ public class TopicController {
             Topic topic = topicOpt.get();
             Message message = messageOpt.get();
 
-            // ✅ Remove the message from the topic
+            // Remove the message from the topic
             topic.getMessages().remove(message);
 
-            // ✅ Update `indexInTopic` for remaining messages
+            // Update `indexInTopic` for remaining messages
             int index = 1;
             for (Message msg : topic.getOrderedMessages()) {
                 msg.setIndexInTopic(index++);
@@ -99,7 +99,7 @@ public class TopicController {
 
             topicRepo.save(topic);
 
-            // ✅ Delete message if it is not in any other topic
+            // Delete message if it is not in any other topic
             if (message.getTopics().isEmpty()) {
                 messageRepo.delete(message);
             }

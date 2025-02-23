@@ -19,14 +19,14 @@ public class QueueService {
     @Autowired
     private MessageRepository messageRepo;
 
-    // ✅ Get all queues (filtering by prefix if provided)
+    //  Get all queues (filtering by prefix if provided)
     public Collection<MessageQueue> getAllQueues(String prefix) {
         return queueRepo.findAllBy().stream()
                 .filter(q -> q.getId().startsWith(prefix))
                 .toList();
     }
 
-    // ✅ Initialize test data (called in `@PostConstruct`)
+    //  Initialize test data (called in `@PostConstruct`)
     public void initializeTestData() {
         Message hi = new Message("Hi");
         Message hello = new Message("Hello");
