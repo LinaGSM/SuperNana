@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  app1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: itsaaa-app1
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mydatabase
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://mydatabase:5432/mydatabase
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123
+
+  app2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: itsaaa-app2
+    ports:
+      - "8081:8080"
+    depends_on:
+      - mydatabase
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://mydatabase:5432/mydatabase
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123
+
+  mydatabase:
+    image: postgres:latest
+    container_name: mydatabase
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=mydatabase
+    ports:
+      - "5432:5432"
+
+  nginx-proxy:
+    image: nginx:latest
+    container_name: nginx-proxy
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - app1
+      - app2

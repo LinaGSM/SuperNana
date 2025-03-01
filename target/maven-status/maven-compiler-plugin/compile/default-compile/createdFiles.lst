@@ -1,1 +1,11 @@
+demo\controller\TopicRepository.class
+demo\controller\MessageQueueController.class
+demo\controller\TopicController.class
+demo\model\Topic.class
+demo\service\QueueService.class
+demo\model\Message.class
+demo\controller\QueueRepository.class
+demo\controller\MessageRepository.class
 demo\DemoApp.class
+demo\model\MessageQueue.class
+demo\service\MessageService.class
