@@ -1,47 +1,67 @@
 version: '3.8'
 
 services:
+  mydatabase:
+    image: postgres:latest
+    container_name: mydatabase
+    restart: always  # Ensures PostgreSQL restarts if it crashes
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data  # Persistent storage for DB
+    networks:
+      - backend
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-d", "mydatabase" ]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+
   app1:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: itsaaa-app1
+    restart: always
     ports:
       - "8080:8080"
     depends_on:
-      - mydatabase
+      mydatabase:
+        condition: service_healthy  # Waits for PostgreSQL to be ready
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://mydatabase:5432/mydatabase
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=123
+    networks:
+      - backend
 
   app2:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: itsaaa-app2
+    restart: always
     ports:
       - "8081:8080"
     depends_on:
-      - mydatabase
+      mydatabase:
+        condition: service_healthy
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://mydatabase:5432/mydatabase
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=123
-
-  mydatabase:
-    image: postgres:latest
-    container_name: mydatabase
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=123
-      - POSTGRES_DB=mydatabase
-    ports:
-      - "5432:5432"
+    networks:
+      - backend
 
   nginx-proxy:
     image: nginx:latest
     container_name: nginx-proxy
+    restart: always
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
@@ -49,3 +69,12 @@ services:
     depends_on:
       - app1
       - app2
+    networks:
+      - backend
+
+volumes:
+  pgdata:  # Persistent PostgreSQL data
+
+networks:
+  backend:
+    driver: bridge
