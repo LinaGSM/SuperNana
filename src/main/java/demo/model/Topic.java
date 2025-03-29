@@ -26,12 +26,16 @@ public class Topic {
     @JsonBackReference // Prevents infinite recursion when serializing Messages
     private Set<Message> messages = new HashSet<>();
 
+
+    // Constructors
     public Topic() {}
 
     public Topic(String name) {
         this.name = name;
     }
 
+
+    // Getters
     public Long getId() {
         return id;
     }
@@ -44,9 +48,18 @@ public class Topic {
         return messages;
     }
 
+
+    // Setters
+    public void setId(Long id) { this.id = id; }
+
+    public void setName(String name) { this.name = name; }
+
     public void setMessages(Set<Message> messages) {
         this.messages = messages;
     }
+
+
+    //Methods
 
     // Get messages in order by `indexInTopic`
     public List<Message> getOrderedMessages() {
@@ -65,5 +78,10 @@ public class Topic {
     //  Remove a message from the topic
     public void removeMessage(Message message) {
         this.messages.remove(message);
+    }
+
+    // Verify if a message is in the topic
+    public boolean isMessageInTopic(Message message) {
+        return this.messages.contains(message);
     }
 }

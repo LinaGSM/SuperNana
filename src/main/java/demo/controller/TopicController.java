@@ -7,106 +7,46 @@ import org.springframework.web.bind.annotation.*;
 
 import demo.model.Message;
 import demo.model.Topic;
-import demo.controller.MessageRepository;
-import demo.controller.TopicRepository;
+import demo.service.TopicService;
 
-import java.util.Optional;
-import java.util.Set;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/topics")
 public class TopicController {
 
     @Autowired
-    private TopicRepository topicRepo;
-
-    @Autowired
-    private MessageRepository messageRepo;
+    private TopicService topicService;
 
     // Create a new topic
     @PostMapping
     public ResponseEntity<Topic> createTopic(@RequestBody String name) {
-        Topic topic = new Topic(name);
-        topicRepo.save(topic);
+        Topic topic = topicService.createTopic(name);
         return new ResponseEntity<>(topic, HttpStatus.CREATED);
     }
 
-    // Add a message to a topic & assign indexInTopic
+    // Add a message to a topic
     @PostMapping("/{topicId}/messages/{messageId}")
-    public ResponseEntity<Topic> addMessageToTopic(
-            @PathVariable Long topicId, @PathVariable Long messageId) {
-
-        Optional<Topic> topicOpt = topicRepo.findById(topicId);
-        Optional<Message> messageOpt = messageRepo.findById(messageId);
-
-        if (topicOpt.isPresent() && messageOpt.isPresent()) {
-            Topic topic = topicOpt.get();
-            Message message = messageOpt.get();
-
-            // Assign sequential `indexInTopic`
-            message.setIndexInTopic(topic.getMessages().size() + 1);
-
-            topic.addMessage(message);
-            topicRepo.save(topic);
-            messageRepo.save(message);
-
-            return new ResponseEntity<>(topic, HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    public ResponseEntity<Topic> addMessageToTopic(@PathVariable Long topicId, @PathVariable Long messageId) {
+        Optional<Topic> topic = topicService.addMessageToTopic(topicId, messageId);
+        return topic.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
-    // Get messages in a topic (ordered by `indexInTopic`)
+    // Get messages in a topic
     @GetMapping("/{topicId}/messages")
     public ResponseEntity<List<Message>> getMessagesInTopic(@PathVariable Long topicId) {
-        Optional<Topic> topicOpt = topicRepo.findById(topicId);
-
-        if (topicOpt.isPresent()) {
-            Topic topic = topicOpt.get();
-
-            List<Message> orderedMessages = topic.getMessages()
-                    .stream()
-                    .sorted((m1, m2) -> Integer.compare(m1.getIndexInTopic(), m2.getIndexInTopic()))
-                    .collect(Collectors.toList());
-
-            return new ResponseEntity<>(orderedMessages, HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        Optional<List<Message>> messages = topicService.getMessagesInTopic(topicId);
+        return messages.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
-    // Remove a message from a topic & update indices
+    // Remove a message from a topic
     @DeleteMapping("/{topicId}/messages/{messageId}")
     public ResponseEntity<Topic> removeMessageFromTopic(@PathVariable Long topicId, @PathVariable Long messageId) {
-        Optional<Topic> topicOpt = topicRepo.findById(topicId);
-        Optional<Message> messageOpt = messageRepo.findById(messageId);
-
-        if (topicOpt.isPresent() && messageOpt.isPresent()) {
-            Topic topic = topicOpt.get();
-            Message message = messageOpt.get();
-
-            // Remove the message from the topic
-            topic.getMessages().remove(message);
-
-            // Update `indexInTopic` for remaining messages
-            int index = 1;
-            for (Message msg : topic.getOrderedMessages()) {
-                msg.setIndexInTopic(index++);
-                messageRepo.save(msg);
-            }
-
-            topicRepo.save(topic);
-
-            // Delete message if it is not in any other topic
-            if (message.getTopics().isEmpty()) {
-                messageRepo.delete(message);
-            }
-
-            return new ResponseEntity<>(topic, HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        Optional<Topic> topic = topicService.removeMessageFromTopic(topicId, messageId);
+        return topic.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 }

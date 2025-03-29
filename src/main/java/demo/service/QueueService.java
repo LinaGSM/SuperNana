@@ -3,11 +3,12 @@ package demo.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import demo.model.Message;
-import demo.model.MessageQueue;
+import demo.model.Queue;
 import demo.controller.QueueRepository;
 import demo.controller.MessageRepository;
 
-import jakarta.annotation.PostConstruct;
+
+
 import java.util.Collection;
 
 @Service
@@ -19,8 +20,17 @@ public class QueueService {
     @Autowired
     private MessageRepository messageRepo;
 
+    // Create a new queue
+    public Queue createQueue(String id){
+        Queue queue = new Queue(id);
+        Queue createdQueue = queueRepo.save(queue);
+
+
+        return createdQueue;
+    }
+
     //  Get all queues (filtering by prefix if provided)
-    public Collection<MessageQueue> getAllQueues(String prefix) {
+    public Collection<Queue> getAllQueues(String prefix) {
         return queueRepo.findAllBy().stream()
                 .filter(q -> q.getId().startsWith(prefix))
                 .toList();
@@ -31,7 +41,7 @@ public class QueueService {
         Message hi = new Message("Hi");
         Message hello = new Message("Hello");
 
-        MessageQueue queue = new MessageQueue();
+        Queue queue = new Queue();
         queue.setId("main");
         queueRepo.save(queue);
 
@@ -46,7 +56,7 @@ public class QueueService {
         Message hii = new Message("Hi");
         Message helllo = new Message("Hello");
 
-        MessageQueue queue2 = new MessageQueue();
+        Queue queue2 = new Queue();
         queue2.setId("secondary");
         queueRepo.save(queue2);
 
