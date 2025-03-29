@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import demo.model.Message;
-import demo.model.Queue;
 import demo.controller.MessageRepository;
 import demo.controller.QueueRepository;
 
@@ -33,89 +32,61 @@ public class MessageService {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
 
+
     // Methods
 
-    // Retrieve all messages in a queue (FIFO order)
-    public List<Message> getMessagesByQueue(String queueId) {
-        Optional<Queue> queue = queueRepo.findById(queueId);
-        return queue.map(messageRepo::findAllByQueueOrderByIdAsc).orElse(null);
+    /* -------------------------------
+       Méthodes de base (CRUD + état)
+       ------------------------------- */
+
+    // Create a message
+    public Message createMessage(String content) {
+        Message message = new Message(content);
+        return messageRepo.save(message);
     }
 
-    // Get the next message from a queue (FIFO order)
-    public Optional<Message> getNextMessage(String queueId) {
-        List<Message> messages = getMessagesByQueue(queueId);
-        return messages != null && !messages.isEmpty() ? Optional.of(messages.get(0)) : Optional.empty();
-    }
 
-    // Add a new message to a queue
-    public Optional<Message> addMessageToQueue(String queueId, String content) {
-        Optional<Queue> queueOpt = queueRepo.findById(queueId);
-        if (queueOpt.isPresent()) {
-            Queue queue = queueOpt.get();
-            Message message = new Message(content);
-            message.setQueue(queue);
-            queue.addMessage(message);
-            return Optional.of(messageRepo.save(message));
+    // Delete message
+    @Transactional
+    public void deleteMessage(Message message) {
+        if(message == null) {
+            throw new IllegalArgumentException("The message cannot be null");
         }
-        return Optional.empty();
+
+        // Display log
+        logDeletionStatistics(message);
+
+        // Delete message
+        messageRepo.delete(message);
     }
 
-    // Mark message as read and log the event
+
+    // Mark message as read
+    @Transactional
     public Message readMessage(long messageId) {
         Optional<Message> messageOpt = Optional.ofNullable(messageRepo.findById(messageId));
         if (messageOpt.isPresent()) {
             Message message = messageOpt.get();
+
+            // mark message as read
             message.markAsRead();
             messageRepo.save(message);
 
             // Logging message read event
             logger.info("Message {} read {} times. First accessed at: {}",
-                    messageId, message.getReadCount(), message.getFirstAccessedAt());
+                    messageId, message.getReadCount(), message.getFirstAccessedAt().format(formatter));
 
             return message;
         }
         return null;
     }
 
-    public String deleteMessage(Long messageId, String queueId) {
-        Optional<Message> messageOpt = messageRepo.findById(messageId);
-        if (messageOpt.isEmpty()) {
-            return "Message not found.";
-        }
 
-        Message message = messageOpt.get();
 
-        // Prevent deletion if the message has not been read
-        if (!message.getIsRead()) {
-            return "Message cannot be deleted because it has not been read.";
-        }
 
-        // Calculate deletion time
-        LocalDateTime now = LocalDateTime.now();
-        Duration timeToDelete = Duration.between(message.getCreatedAt(), now);
-
-        // Check if the message exists in other queues
-        boolean existsInOtherQueues = queueRepo.findAllBy().stream()
-                .anyMatch(q -> q.getMessages().contains(message));
-
-        // If the message exists in another queue, do not delete it completely
-        if (!existsInOtherQueues) {
-            messageRepo.delete(message);
-            logger.info("Deleted Message {} after {} seconds. Read count: {}",
-                    messageId, timeToDelete.getSeconds(), message.getReadCount());
-        } else if (queueId != null) {
-            // Remove the message only from the specified queue
-            Optional<Queue> queueOpt = queueRepo.findById(queueId);
-            if (queueOpt.isPresent()) {
-                Queue queue = queueOpt.get();
-                queue.removeMessage(messageId);
-                queueRepo.save(queue);
-                return "Message removed from queue but exists in other queues.";
-            }
-        }
-
-        return "SUCCESS";
-    }
+    /* -------------------------------
+       Méthodes pour les recherche
+       ------------------------------- */
 
     // Get messages starting from a given ID
     public List<Message> getMessagesFrom(Long startId) {
@@ -127,6 +98,13 @@ public class MessageService {
         return messageRepo.findByTextContaining(keyword);
     }
 
+
+
+
+      /* -------------------------------
+       Méthodes pour les topics
+       ------------------------------- */
+
     // Add a topic to the list of topic associated with message
     public void addToAssociatedTopic(Message message, Topic topic) {
         message.getAssociatedTopics().add(topic);
@@ -137,8 +115,9 @@ public class MessageService {
         message.getAssociatedTopics().remove(topic);
     }
 
+    // delete message if it's not in any topic
     @Transactional
-    public void safeDeleteIfOrphanedInTopic(Long messageId) {
+    public void safeDeleteMessageIfOrphanedInTopic(Long messageId) {
         Message message = messageRepo.findById(messageId)
                 .orElseThrow(() -> {
                     logger.error("Message not found with ID: {}", messageId);
@@ -148,25 +127,40 @@ public class MessageService {
         if (message.getAssociatedTopics().isEmpty()) {
             logger.debug("Message {} is not associated with any topics - deleting", messageId);
 
-            // Display statistics before deletion
-            LocalDateTime deletedAt = LocalDateTime.now();
-            Duration lifeTime = Duration.between(message.getCreatedAt(), deletedAt);
-            logger.info("Deleted message statistics : \n " +
-                    "\t MessageId: {} \n " +
-                    "\t CreatedAt: {} \n " +
-                    "\t Deleted at: {} \n " +
-                    "\t LifeTime: {} j {}h {}min {}s",
-                    messageId,
-                    message.getCreatedAt().format(formatter),
-                    deletedAt.format(formatter),
-                    lifeTime.toDays(),
-                    lifeTime.toHours() % 24,
-                    lifeTime.toMinutes() % 60,
-                    lifeTime.getSeconds() % 60
-            );
-            messageRepo.delete(message);
+            // delete message
+            deleteMessage(message);
         } else {
             logger.warn("Message {} is still associated with topics - preserving", messageId);
         }
+    }
+
+
+
+    /* -------------------------------
+       Méthodes privées (logging)
+       ------------------------------- */
+
+    private void logDeletionStatistics(Message message) {
+        LocalDateTime deletedAt = LocalDateTime.now();
+        Duration lifeTime = Duration.between(message.getCreatedAt(), LocalDateTime.now());
+
+        logger.info("[STATS] Message deleted:\n" +
+            "\t - ID: {} \n" +
+            "\t - CreatedAt: {} \n" +
+            "\t - FirstAccessedAt: {} \n" +
+            "\t - DeletedAt: {} \n" +
+            "\t - Lifetime: {} days, {}h {}min {}s \n" +
+            "\t - Read count: {}"
+            ,
+                message.getId(),
+                message.getCreatedAt().format(formatter),
+                message.getFirstAccessedAt().format(formatter),
+                deletedAt.format(formatter),
+                lifeTime.toDays(),
+                lifeTime.toHours() % 24,
+                lifeTime.toMinutes() % 60,
+                lifeTime.getSeconds() % 60,
+                message.getReadCount()
+        );
     }
 }

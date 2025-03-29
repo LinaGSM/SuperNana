@@ -19,8 +19,9 @@ public class Message {
     private int indexInTopic;
 
     @ManyToOne
+    @JoinColumn(name = "queue_id")
     @JsonBackReference
-    private Queue queue;
+    private Queue queue = null;
 
     @ManyToMany
     @JoinTable(
@@ -42,25 +43,13 @@ public class Message {
 
 
     // Constructors
-    public Message() {
-        this.createdAt = LocalDateTime.now();
-    }
+    public Message() {}
 
     public Message(String text) {
         this.text = text;
         this.createdAt = LocalDateTime.now();
     }
 
-    public Message(String text, Queue queue) {
-        this.text = text;
-        this.queue = queue;
-    }
-
-    public Message(String text, Queue queue, Set<Topic> topics) {
-        this.text = text;
-        this.queue = queue;
-        this.associatedTopics = topics;
-    }
 
     // getters
     public LocalDateTime getCreatedAt() {

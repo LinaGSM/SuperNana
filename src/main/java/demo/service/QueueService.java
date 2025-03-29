@@ -1,15 +1,20 @@
 package demo.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import demo.model.Message;
 import demo.model.Queue;
 import demo.controller.QueueRepository;
 import demo.controller.MessageRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 
-
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class QueueService {
@@ -20,23 +25,47 @@ public class QueueService {
     @Autowired
     private MessageRepository messageRepo;
 
+    private static final Logger logger = LoggerFactory.getLogger(QueueService.class);
+
+
+    // Methods
+
     // Create a new queue
+    @Transactional
     public Queue createQueue(String id){
         Queue queue = new Queue(id);
         Queue createdQueue = queueRepo.save(queue);
+        queueRepo.flush();
 
-
+        logger.info("Successfully created queue {} ", createdQueue.getId());
         return createdQueue;
     }
 
+
+    // Delete a queue
+    @Transactional
+    public void deleteQueue(String id) {
+        queueRepo.deleteById(id);
+        logger.info("Successfully deleted queue {} ", id);
+    }
+
+
     //  Get all queues (filtering by prefix if provided)
+    @Transactional
     public Collection<Queue> getAllQueues(String prefix) {
         return queueRepo.findAllBy().stream()
                 .filter(q -> q.getId().startsWith(prefix))
                 .toList();
     }
 
-    //  Initialize test data (called in `@PostConstruct`)
+    // Get a queue by id
+    @Transactional
+    public Optional<Queue> getQueue(String id) {
+        return queueRepo.findById(id);
+    }
+
+
+    //  Initialisation for Test
     public void initializeTestData() {
         Message hi = new Message("Hi");
         Message hello = new Message("Hello");

@@ -22,4 +22,6 @@ public interface QueueRepository extends CrudRepository<Queue, String> {
 
 	// Get queues where the ID starts with a certain prefix
 	List<Queue> findByIdStartingWith(String prefix);
+
+	void flush();
 }

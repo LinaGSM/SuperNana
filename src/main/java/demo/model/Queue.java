@@ -25,7 +25,10 @@ public class Queue {
         this.messages = new LinkedList<>();
     }
 
-    public Queue(String id) { this.id = id; }
+    public Queue(String id) {
+        this.id = id;
+        this.messages = new LinkedList<>();
+    }
 
 
     // Getters
@@ -50,22 +53,20 @@ public class Queue {
 
     //Methods
 
-
     public void addMessage(Message message) {
         this.messages.add(message);
         message.setQueue(this);
     }
 
-    public Optional<Message> nextMessage() { // Fixed to return Optional<Message>
-        return messages.isEmpty() ? Optional.empty() : Optional.of(messages.get(0));
-    }
-
-    public Optional<Message> removeMessage(long mid) {
-        Optional<Message> r = messages.stream().filter(x -> x.getId() == mid).findFirst();
-        r.ifPresent(m -> {
+    public void removeMessage(Message message) {
+        Optional<Message> msg = messages.stream().filter(x -> x.getId() == message.getId()).findFirst();
+        msg.ifPresent(m -> {
             messages.remove(m);
             m.setQueue(null);
         });
-        return r;
     }
+
+
+
+
 }

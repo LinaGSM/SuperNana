@@ -2,11 +2,15 @@ demo\controller\TopicRepository.class
 demo\controller\TopicController.class
 demo\model\Topic.class
 demo\service\QueueService.class
+demo\model\TopicMessageAssociation.class
 demo\model\Message.class
 demo\controller\QueueRepository.class
-demo\model\MessageQueue.class
+demo\model\Queue.class
+demo\service\QueueMessageService.class
 demo\controller\MessageQueueController.class
+demo\controller\TopicMessageAssociationRepository.class
 demo\service\TopicService.class
+demo\service\TopicMessageAssociationService.class
 demo\controller\MessageRepository.class
 demo\DemoApp.class
 demo\service\MessageService.class

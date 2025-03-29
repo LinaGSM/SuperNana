@@ -48,7 +48,7 @@ public class TopicService {
 
 
     @Transactional
-    // Method : Add a message in a topic
+    // Method : Add a message to a topic
     public Optional<Topic> addMessageToTopic(Long topicId, Long messageId) {
         Optional<Topic> topicOpt = topicRepo.findById(topicId);
         Optional<Message> messageOpt = messageRepo.findById(messageId);
@@ -81,10 +81,10 @@ public class TopicService {
         }
 
         if (topicOpt.isEmpty()) {
-            logger.error("Topic not found with ID: {}", topicId);
+            logger.error("Topic {} was not found : ", topicId);
         }
         if (messageOpt.isEmpty()) {
-            logger.error("Message not found with ID: {}", messageId);
+            logger.error("Message {} was not found : ", messageId);
         }
 
         return Optional.empty();
@@ -128,7 +128,7 @@ public class TopicService {
             logger.info("Successfully removed message {} from topic {}", messageId, topicId);
 
             // Delete message if it is not in any other topics
-            messageService.safeDeleteIfOrphanedInTopic(messageId);
+            messageService.safeDeleteMessageIfOrphanedInTopic(messageId);
 
             // Get message index from association table to update the index position of messages
             updateMessagesIndexing(topicId);
