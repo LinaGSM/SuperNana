@@ -3,7 +3,6 @@ package demo.repository;
 import demo.model.ArchivedMessage;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ArchivedMessageRepository extends JpaRepository<ArchivedMessage, Long> {

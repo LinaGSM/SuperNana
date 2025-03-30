@@ -84,16 +84,28 @@ public class ArchivedMessageService {
 
     // Get all the archived Messages
     public List<ArchivedMessage> getAllArchivedMessages() {
-        return archiveRepo.findAll();
+        List<ArchivedMessage> archived = archiveRepo.findAll();
+        if (archived.isEmpty()) {
+            logger.info("No Archived Messages Found");
+        }
+        return archived;
     }
 
     // Get archived messages from the same queue
     public List<ArchivedMessage> getArchivedMessagesByQueueId(String queueId) {
-        return archivedMessageRepo.findByOriginalQueueId(queueId);
+        List<ArchivedMessage> archived = archivedMessageRepo.findByOriginalQueueId(queueId);
+        if (archived.isEmpty()) {
+            logger.info("No Archived Messages Found for Queue: {}", queueId);
+        }
+        return archived;
     }
 
     // Get archived messages containing keyword
     public List<ArchivedMessage> searchArchivedMessagesContainingKeyword(String keyword) {
-        return archiveRepo.findByOriginalContentContaining(keyword);
+        List<ArchivedMessage> archived = archiveRepo.findByOriginalContentContaining(keyword);
+        if (archived.isEmpty()) {
+            logger.info("No Archived Messages Found containing Keyword: {}", keyword);
+        }
+        return archived;
     }
 }
