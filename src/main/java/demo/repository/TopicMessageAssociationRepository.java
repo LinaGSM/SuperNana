@@ -1,4 +1,4 @@
-package demo.controller;
+package demo.repository;
 
 import java.util.List;
 import java.util.Optional;

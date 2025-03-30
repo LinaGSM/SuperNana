@@ -6,14 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import demo.model.Message;
 import demo.model.Queue;
-import demo.controller.QueueRepository;
-import demo.controller.MessageRepository;
+import demo.repository.QueueRepository;
+import demo.repository.MessageRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 @Service

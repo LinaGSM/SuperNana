@@ -1,14 +1,14 @@
 package demo.service;
 
-import demo.controller.TopicMessageAssociationRepository;
+import demo.repository.TopicMessageAssociationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import demo.model.Topic;
 import demo.model.Message;
 import demo.model.TopicMessageAssociation;
-import demo.controller.TopicRepository;
-import demo.controller.MessageRepository;
+import demo.repository.TopicRepository;
+import demo.repository.MessageRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

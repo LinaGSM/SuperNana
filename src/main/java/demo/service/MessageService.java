@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import demo.model.Message;
-import demo.controller.MessageRepository;
-import demo.controller.QueueRepository;
+import demo.repository.MessageRepository;
+import demo.repository.QueueRepository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
