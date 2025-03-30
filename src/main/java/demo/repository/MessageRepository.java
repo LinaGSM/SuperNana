@@ -1,5 +1,6 @@
 package demo.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
@@ -10,7 +11,7 @@ public interface MessageRepository extends CrudRepository<Message, Long> {
 
 	Message findById(long id);
 
-	List<Message> findAllByQueue(Queue queue);
+	List<Message> findByIsReadTrueAndCreatedAtBefore(LocalDateTime date);
 
 	List<Message> findAllByQueueOrderByIdAsc(Queue queue); // FIFO retrieval
 	List<Message> findByIdGreaterThanEqual(Long startId); // Retrieve messages from a given ID
