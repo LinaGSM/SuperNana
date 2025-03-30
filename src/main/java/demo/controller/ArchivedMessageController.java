@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/archived-messages")
+@RequestMapping("/archive")
 public class ArchivedMessageController {
 
     @Autowired
