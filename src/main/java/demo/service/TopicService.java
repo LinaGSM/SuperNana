@@ -66,8 +66,8 @@ public class TopicService {
 
                 // Add message to topic
                 topic.addMessage(message);
-                topicRepo.save(topic);
-                messageRepo.save(message);
+                // topicRepo.save(topic);
+                // messageRepo.save(message);
 
                 logger.info("Successfully added message {} to topic {}", messageId, topicId);
             }else {
