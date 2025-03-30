@@ -50,12 +50,18 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults())
-                .logout(logout -> logout.permitAll())
+                .formLogin(form -> form
+                        .defaultSuccessUrl("/", true) // Ensure login redirects correctly
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .deleteCookies("JSESSIONID") // Clear session on logout
+                        .permitAll()
+                )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS) // Force session creation
                         .maximumSessions(1)
-                        .expiredUrl("/login?expired")
+                        .maxSessionsPreventsLogin(false) // Allow new login if session expires
                 );
 
         return http.build();
