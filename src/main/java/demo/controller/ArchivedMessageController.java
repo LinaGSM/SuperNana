@@ -29,7 +29,7 @@ public class ArchivedMessageController {
     /**
      * Get all archived messages
      */
-    @GetMapping
+    @GetMapping("/messages")
     public ResponseEntity<List<ArchivedMessage>> getAllArchivedMessages() {
         List<ArchivedMessage> archived = archivedMessageService.getAllArchivedMessages();
         return new ResponseEntity<>(archived, HttpStatus.OK);
@@ -39,7 +39,7 @@ public class ArchivedMessageController {
      * Get archived messages by original queue
      * @param queueId ID of the original queue
      */
-    @GetMapping("/by-queue/{queueId}")
+    @GetMapping("/{queueId}/messages")
     public ResponseEntity<List<ArchivedMessage>> getByQueue( @PathVariable("queueId") String queueId) {
         List<ArchivedMessage> archived = archivedMessageService.getArchivedMessagesByQueueId(queueId);
         return new ResponseEntity<>(archived, HttpStatus.OK);
