@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .formLogin(Customizer.withDefaults())
                 .logout(logout -> logout.permitAll())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                         .maximumSessions(1)
                         .expiredUrl("/login?expired")
                 );
