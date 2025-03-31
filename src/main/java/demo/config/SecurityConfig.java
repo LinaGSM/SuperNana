@@ -1,6 +1,7 @@
 package demo.config;
 
 import demo.service.AppUserDetailsService;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,10 +11,13 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
@@ -60,12 +64,24 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)  // Always create a session
+                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                         .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false)  // Allow new logins if session expires
-                        .expiredUrl("/login?expired")     // Redirect expired sessions
+                        .expiredUrl("/login?expired")
+                        .sessionRegistry(sessionRegistry())
                 );
 
         return http.build();
+    }
+
+
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+
+    @Bean
+    public ServletListenerRegistrationBean<HttpSessionEventPublisher> httpSessionEventPublisher() {
+        return new ServletListenerRegistrationBean<>(new HttpSessionEventPublisher());
     }
 }
