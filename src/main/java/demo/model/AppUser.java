@@ -22,7 +22,7 @@ public class AppUser {
         this.role = "USER";
     }
 
-    // Getters and Setters
+    // Getters
     public Long getId() { return id; }
 
     public String getUsername() { return username; }
@@ -31,6 +31,8 @@ public class AppUser {
 
     public String getRole() { return role; }
 
+
+    // Setters
     public void setId(Long id) { this.id = id; }
 
     public void setUsername(String username) { this.username = username; }

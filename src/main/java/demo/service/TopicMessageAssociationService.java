@@ -18,7 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-
+/**
+ * Service layer responsible for managing index position of a message that can be part of different topic
+ */
 @Service
 public class TopicMessageAssociationService {
 
@@ -35,7 +37,15 @@ public class TopicMessageAssociationService {
 
     // Methods
 
-    // Method : Create an association between a message and a topic
+    /**
+     * Creates an association between a given message and a topic.
+     * The message is assigned the next available position index within the topic.
+     *
+     * @param topicId   The ID of the topic.
+     * @param messageId The ID of the message.
+     * @return The created TopicMessageAssociation.
+     * @throws IllegalArgumentException if the topic or message does not exist.
+     */
     @Transactional
     public TopicMessageAssociation createAssociation(Long topicId, Long messageId) {
         Topic topic = topicRepo.findById(topicId)
@@ -60,13 +70,24 @@ public class TopicMessageAssociationService {
         return savedAssociation;
     }
 
-    // Method : Get all the association related to a topic
+
+    /**
+     * Retrieves all associations related to a specific topic, ordered by position index.
+     *
+     * @param topicId The ID of the topic.
+     * @return A list of TopicMessageAssociation objects associated with the topic.
+     */
     public List<TopicMessageAssociation> getAssociationsByTopic(Long topicId) {
         return associationRepo.findByTopicIdOrderByPositionIndexAsc(topicId);
     }
 
 
-    // Method : Get all the messages of a topic
+    /**
+     * Retrieves all messages associated with a specific topic, ordered by position index.
+     *
+     * @param topicId The ID of the topic.
+     * @return The list of messages associated with the topic.
+     */
     public Optional<List<Message>> getMessagesByTopic(Long topicId) {
         List<TopicMessageAssociation> associations = getAssociationsByTopic(topicId);
         List<Message> messages = new ArrayList<>();
@@ -79,7 +100,13 @@ public class TopicMessageAssociationService {
     }
 
 
-    // Method : Remove association from the table
+    /**
+     * Removes an association between a topic and a message, and reorders the message positions accordingly.
+     *
+     * @param topicId   The ID of the topic.
+     * @param messageId The ID of the message.
+     * @throws IllegalArgumentException if the association does not exist.
+     */
     @Transactional
     public void removeAssociation(Long topicId, Long messageId) {
         int deletedPosition = associationRepo.findPositionIndex(topicId, messageId)
@@ -97,13 +124,5 @@ public class TopicMessageAssociationService {
         logger.debug("Reorganized positions for topic {}", topicId);
 
     }
-
-
-
-
-
-
-
-
 
 }

@@ -20,6 +20,7 @@ public interface TopicMessageAssociationRepository extends CrudRepository<TopicM
 
     Optional<TopicMessageAssociation> findByTopicIdAndMessageId(Long topicId, Long messageId);
 
+    // Delete an association
     @Modifying
     @Query("DELETE FROM TopicMessageAssociation tma WHERE tma.topic.id = :topicId AND tma.message.id = :messageId")
     void deleteByTopicIdAndMessageId(Long topicId, Long messageId);

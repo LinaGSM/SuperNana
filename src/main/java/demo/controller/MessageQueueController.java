@@ -36,14 +36,22 @@ public class MessageQueueController {
         queueService.initializeTestData();
     }
 
-    // Create a new queue
+    /**
+     * Creates a new message queue.
+     * @param name The name of the queue to create
+     * @return The created queue
+     */
     @PostMapping
     public ResponseEntity<Queue> createQueue(@RequestBody String name) {
         Queue queue = queueService.createQueue(name);
         return new ResponseEntity<>(queue, HttpStatus.CREATED);
     }
 
-    // Get a queue by id
+
+    /**
+     * Retrieves a queue by its ID.
+     * @param id The ID of the queue to retrieve
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Queue> getQueue(@PathVariable("id") String id) {
         Optional<Queue> queue = queueService.getQueue(id);
@@ -51,14 +59,22 @@ public class MessageQueueController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Get all queues with an optional filter by prefix
+
+    /**
+     * Retrieves all queues, optionally filtered by a name prefix.
+     * @param prefix Optional prefix to filter queue names (case-sensitive)
+     */
     @GetMapping
     public ResponseEntity<Collection<Queue>> getQueues(
             @RequestParam(value = "startWith", defaultValue = "") String prefix) {
         return new ResponseEntity<>(queueService.getAllQueues(prefix), HttpStatus.OK);
     }
 
-    // Get all messages from a queue
+
+    /**
+     * Retrieves all messages from a specific queue.
+     * @param queueId The ID of the queue
+     */
     @GetMapping("/{id}/messages")
     public ResponseEntity<List<Message>> getMessages(@PathVariable("id") String queueId) {
         List<Message> messages = queueMessageService.getMessagesByQueue(queueId);
@@ -66,7 +82,11 @@ public class MessageQueueController {
                 new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    // Read a message
+    /**
+     * Marks a message as read.
+     * @param messageId The ID of the message to mark as read
+     * @return The message marked as true
+     */
     @PutMapping("/messages/{messageId}/read")
     public ResponseEntity<Message> readMessage(@PathVariable("messageId") long messageId) {
         Message message = messageService.readMessage(messageId);
@@ -74,7 +94,11 @@ public class MessageQueueController {
                                  new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    // Get the next message in a queue (FIFO order)
+
+    /**
+     * Retrieves the next message in a queue (FIFO order).
+     * @param queueId The ID of the queue
+     */
     @GetMapping("/{id}/messages/next")
     public ResponseEntity<Message> getNextMessage(@PathVariable("id") String queueId) {
         Optional<Message> message = queueMessageService.getNextMessageInQueue(queueId);
@@ -82,7 +106,12 @@ public class MessageQueueController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Add a new message to a queue
+    /**
+     * Adds a new message to a queue.
+     * @param queueId The ID of the target queue
+     * @param content The content of the message to add
+     * @return The updated queue containing the new message
+     */
     @PostMapping("/{id}/messages")
     public ResponseEntity<Queue> addMessageToQueue(@PathVariable("id") String queueId, @RequestBody String content) {
         Optional<Queue> result = queueMessageService.addMessageToQueue(queueId, content);
@@ -90,7 +119,13 @@ public class MessageQueueController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Delete a message from a queue
+
+    /**
+     * Deletes a message from a queue.
+     * @param queueId The ID of the queue
+     * @param msgId The ID of the message to delete
+     * @return The updated queue not containing the message anymore
+     */
     @DeleteMapping("/{id}/messages/{msgId}")
     public ResponseEntity<Queue> deleteMessageFromQueue(@PathVariable("id") String queueId, @PathVariable("msgId") long msgId) {
         Optional<Queue> result = queueMessageService.deleteMessageFromQueue(queueId, msgId);
@@ -98,14 +133,21 @@ public class MessageQueueController {
                 .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.FORBIDDEN));
     }
 
-    // Retrieve messages starting from a given number
+
+    /**
+     * Retrieves messages starting from a specific message ID.
+     * @param startingFromMessageId The ID of the message to start from
+     */
     @GetMapping("/messages")
     public ResponseEntity<List<Message>> getMessagesStartingFrom(@RequestParam("startFrom") Long startingFromMessageId) {
         List<Message> messages = messageService.getMessagesFrom(startingFromMessageId);
         return new ResponseEntity<>(messages, HttpStatus.OK);
     }
 
-    // Search messages by partial content ( Case sensitive)
+    /**
+     * Searches messages by content keyword (case-sensitive).
+     * @param keyword The search term to match against message content
+     */
     @GetMapping("/messages/search")
     public ResponseEntity<List<Message>> searchMessages(@RequestParam("content") String keyword) {
         List<Message> messages = messageService.searchMessages(keyword);
