@@ -2,8 +2,8 @@ package demo.service;
 
 import demo.model.Message;
 import demo.model.Topic;
-import demo.controller.MessageRepository;
-import demo.controller.TopicRepository;
+import demo.repository.MessageRepository;
+import demo.repository.TopicRepository;
 import demo.model.TopicMessageAssociation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;

@@ -5,14 +5,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import demo.model.Message;
 import demo.model.Queue;
-import demo.service.MessageService;
-import demo.service.TopicService;
-import demo.controller.MessageRepository;
-import demo.controller.QueueRepository;
+import demo.repository.MessageRepository;
+import demo.repository.QueueRepository;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,33 +39,26 @@ public class QueueMessageService {
     public Optional<Queue> addMessageToQueue(String queueId, String content) {
         Optional<Queue> queueOpt = queueService.getQueue(queueId);
         if (queueOpt.isPresent()) {
-            System.out.println("inside queue exist");
             Queue queue = queueOpt.get();
             Message message = messageService.createMessage(content);
-            System.out.println("after creating message");
 
-            if(message.getQueue() == null && !getMessagesByQueue(queueId).contains(message)) {
+
+            if(message.getQueue() == null && !getMessagesByQueue(queueId).contains(message)) { //FIXME No need too add those checks since we create a new and clean message, so it is not linked to any queue
                 // add a message to a queue
-                System.out.println(" inside can add message");
                 message.setQueue(queue);
-                System.out.println("after adding message");
 
                 // Save
                 messageRepo.save(message);
                 queue.addMessage(message);
 
                 queueRepo.save(queue);
-                System.out.println("after saving message");
 
-                logger.info("Successfully added message {} to queue {}", message.getId(), queueId);
             }else{
                 logger.warn("Message {} is already in queue {}", message.getId(), queueId);
             }
-            System.out.println("good end");
 
             return Optional.of(queue);
         }
-        System.out.println("bad end");
 
         logger.error("Queue {} was not found", queueId);
         return Optional.empty();
@@ -124,7 +113,7 @@ public class QueueMessageService {
     @Transactional
     public List<Message> getMessagesByQueue(String queueId) {
         Optional<Queue> queue = queueService.getQueue(queueId);
-        return queue.map(messageRepo::findAllByQueueOrderByIdAsc).orElse(null);
+        return queue.map(messageRepo::findAllByQueueOrderByIdAsc).orElse(new ArrayList<>());
     }
 
     // Method : Get the next message from a queue (FIFO order)
