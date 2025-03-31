@@ -54,7 +54,7 @@ public class ArchivedMessageService {
     }
 
     private List<ArchivedMessage> archiveOldMessages() {
-        if (retentionDays <= 0) return null;
+        if (retentionDays < 0) return null;
 
         LocalDateTime cutoff = LocalDateTime.now().minusDays(retentionDays);
 
