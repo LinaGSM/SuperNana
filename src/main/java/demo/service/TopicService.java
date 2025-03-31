@@ -15,6 +15,10 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Optional;
 
+
+/**
+ * Service layer for managing topics and their associated messages.
+ */
 @Service
 public class TopicService {
 
@@ -35,7 +39,12 @@ public class TopicService {
 
     // Methods
 
-    // Method : Create a topic
+    /**
+     * Creates a new topic with the given name.
+     *
+     * @param name The name of the topic to be created.
+     * @return The created topic.
+     */
     @Transactional
     public Topic createTopic(String name) {
         Topic topic = new Topic(name);
@@ -46,9 +55,14 @@ public class TopicService {
     }
 
 
-
+    /**
+     * Adds a message to a specific topic.
+     *
+     * @param topicId   The ID of the topic.
+     * @param messageId The ID of the message to be added.
+     * @return The updated topic
+     */
     @Transactional
-    // Method : Add a message to a topic
     public Optional<Topic> addMessageToTopic(Long topicId, Long messageId) {
         Optional<Topic> topicOpt = topicRepo.findById(topicId);
         Optional<Message> messageOpt = messageRepo.findById(messageId);
@@ -92,7 +106,10 @@ public class TopicService {
 
 
 
-    // Method : Get all the messages from a topic
+    /**
+     * Retrieves all messages associated with a specific topic.
+     * @param topicId The ID of the topic.
+     */
     public Optional<List<Message>> getMessagesInTopic(Long topicId) {
         Optional<List<Message>> messages = associationService.getMessagesByTopic(topicId);
 
@@ -104,7 +121,13 @@ public class TopicService {
 
 
 
-    // Method : Remove a message from a topic
+    /**
+     * Removes a message from a specific topic.
+     *
+     * @param topicId   The ID of the topic.
+     * @param messageId The ID of the message to be removed.
+     * @return The updated topic
+     */
     @Transactional
     public Optional<Topic> removeMessageFromTopic(Long topicId, Long messageId) {
         Optional<Topic> topicOpt = topicRepo.findById(topicId);
@@ -147,8 +170,18 @@ public class TopicService {
     }
 
 
-
-    // Method : Update the index position of messages for display
+    /**
+     * Updates the index positions of messages within a specific topic.
+     * This ensures that messages have the correct order in the given topic.
+     * <p>
+     * Each message can belong to multiple topics, and its index may vary
+     * depending on the topic it is associated with. This method retrieves
+     * the correct position index from the association table and updates
+     * the corresponding messages accordingly.
+     * </p>
+     *
+     * @param topicId The ID of the topic for which message indexes need to be updated.
+     */
     public void updateMessagesIndexing(Long topicId) {
         List<TopicMessageAssociation> associations = associationService.getAssociationsByTopic(topicId);
 

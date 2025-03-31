@@ -18,7 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-
+/**
+ * Service layer for message-related operations including CRUD, searching, and topic associations.
+ */
 @Service
 public class MessageService {
     @Autowired
@@ -36,17 +38,29 @@ public class MessageService {
     // Methods
 
     /* -------------------------------
-       Méthodes de base (CRUD + état)
+       Basic Methods
        ------------------------------- */
 
-    // Create a message
+
+
+    /**
+     * Creates a new message with the specified content.
+     *
+     * @param content The text content of the message
+     * @return The newly created Message entity
+     */
     public Message createMessage(String content) {
         Message message = new Message(content);
         return messageRepo.save(message);
     }
 
 
-    // Delete message
+    /**
+     * Deletes a message from the system and logs deletion statistics.
+     *
+     * @param message The message to delete
+     * @throws IllegalArgumentException if the message is null
+     */
     @Transactional
     public void deleteMessage(Message message) {
         if(message == null) {
@@ -61,7 +75,12 @@ public class MessageService {
     }
 
 
-    // Mark message as read
+    /**
+     * Marks a message as read .
+     *
+     * @param messageId The ID of the message to mark as read
+     * @return The updated Message entity, or null if not found
+     */
     @Transactional
     public Message readMessage(long messageId) {
         Optional<Message> messageOpt = Optional.ofNullable(messageRepo.findById(messageId));
@@ -83,39 +102,70 @@ public class MessageService {
 
 
 
-
     /* -------------------------------
-       Méthodes pour les recherche
+       Search Methods
        ------------------------------- */
 
-    // Get messages starting from a given ID
+
+
+    /**
+     * Retrieves messages with IDs greater than or equal to the specified ID.
+     *
+     * @param startId The minimum message ID to include in results
+     * @return List of messages matching the criteria
+     */
     public List<Message> getMessagesFrom(Long startId) {
         return messageRepo.findByIdGreaterThanEqual(startId);
     }
 
-    // Search messages by partial content
+
+    /**
+     * Searches messages containing the specified keyword in their content.
+     * Note: Search is case-sensitive.
+     *
+     * @param keyword The text to search for in message content
+     * @return List of messages containing the keyword
+     */
     public List<Message> searchMessages(String keyword) {
         return messageRepo.findByTextContaining(keyword);
     }
 
 
 
-
       /* -------------------------------
-       Méthodes pour les topics
+       Topic Association Methods
        ------------------------------- */
 
-    // Add a topic to the list of topic associated with message
+
+
+    /**
+     * Adds a topic to the list of topics associated with a given message.
+     *
+     * @param message The message to which the topic should be linked.
+     * @param topic The topic to associate with the message.
+     */
     public void addToAssociatedTopic(Message message, Topic topic) {
         message.getAssociatedTopics().add(topic);
     }
 
-    // Remove a topic from the list of topic associated with message
+
+    /**
+     * Removes a topic from the list of topics associated with a given message.
+     *
+     * @param message The message from which the topic should be removed.
+     * @param topic The topic to disassociate from the message.
+     */
     public void removeFromAssociatedTopic(Message message, Topic topic) {
         message.getAssociatedTopics().remove(topic);
     }
 
-    // delete message if it's not in any topic
+
+    /**
+     * Safely deletes a message only if it's not associated with any topics.
+     *
+     * @param messageId The ID of the message to potentially delete
+     * @throws IllegalArgumentException if the message is not found
+     */
     @Transactional
     public void safeDeleteMessageIfOrphanedInTopic(Long messageId) {
         Message message = messageRepo.findById(messageId)
@@ -137,9 +187,15 @@ public class MessageService {
 
 
     /* -------------------------------
-       Méthodes privées (logging)
+       Private Methods (logging)
        ------------------------------- */
 
+
+    /**
+     * Logs detailed statistics about a message being deleted.
+     *
+     * @param message The message being deleted
+     */
     private void logDeletionStatistics(Message message) {
         LocalDateTime deletedAt = LocalDateTime.now();
         Duration lifeTime = Duration.between(message.getCreatedAt(), LocalDateTime.now());

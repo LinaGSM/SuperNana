@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * Service layer for managing queues and their associated messages.
+ */
 @Service
 public class QueueService {
 
@@ -28,7 +31,12 @@ public class QueueService {
 
     // Methods
 
-    // Create a new queue
+    /**
+     * Creates a new queue with the given ID.
+     *
+     * @param id The id of the queue to be created.
+     * @return The created queue.
+     */
     @Transactional
     public Queue createQueue(String id){
         Queue queue = new Queue(id);
@@ -40,7 +48,10 @@ public class QueueService {
     }
 
 
-    // Delete a queue
+    /**
+     * Deletes a queue by its ID.
+     * @param id The id of the queue to be deleted.
+     */
     @Transactional
     public void deleteQueue(String id) {
         queueRepo.deleteById(id);
@@ -48,7 +59,12 @@ public class QueueService {
     }
 
 
-    //  Get all queues (filtering by prefix if provided)
+    /**
+     * Retrieves all queues, optionally filtering by a given prefix.
+     *
+     * @param prefix The prefix to filter queues by. If null or empty, all queues are returned.
+     * @return A collection of queues matching the criteria.
+     */
     @Transactional
     public Collection<Queue> getAllQueues(String prefix) {
         return queueRepo.findAllBy().stream()
@@ -56,14 +72,22 @@ public class QueueService {
                 .toList();
     }
 
-    // Get a queue by id
+
+    /**
+     * Retrieves a queue by its ID.
+     * @param id The identifier of the queue.
+     */
     @Transactional
     public Optional<Queue> getQueue(String id) {
         return queueRepo.findById(id);
     }
 
 
-    //  Initialisation for Test
+    /**
+     * Initializes test data by creating sample queues and messages.
+     * This method sets up two queues ("main" and "secondary") and associates
+     * several messages with each queue.
+     */
     public void initializeTestData() {
         Message hi = new Message("Hi");
         Message hello = new Message("Hello");
