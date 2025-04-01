@@ -1,5 +1,6 @@
 package demo.controller;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import demo.model.Message;
 import demo.model.Topic;
 import demo.service.TopicService;
+import demo.service.TopicMessageAssociationService;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +20,9 @@ public class TopicController {
 
     @Autowired
     private TopicService topicService;
+
+    @Autowired
+    private TopicMessageAssociationService topicMessageAssociationService;
 
 
     /**
@@ -42,7 +47,7 @@ public class TopicController {
      */
     @PostMapping("/{topicId}/messages/{messageId}")
     public ResponseEntity<Topic> addMessageToTopic(@PathVariable Long topicId, @PathVariable Long messageId) {
-        Optional<Topic> topic = topicService.addMessageToTopic(topicId, messageId);
+        Optional<Topic> topic = topicMessageAssociationService.addMessageToTopic(topicId, messageId);
         return topic.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
@@ -54,7 +59,7 @@ public class TopicController {
      */
     @GetMapping("/{topicId}/messages")
     public ResponseEntity<List<Message>> getMessagesInTopic(@PathVariable Long topicId) {
-        Optional<List<Message>> messages = topicService.getMessagesInTopic(topicId);
+        Optional<List<Message>> messages = topicService.getMessagesByTopic(topicId);
         return messages.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
@@ -69,7 +74,7 @@ public class TopicController {
      */
     @DeleteMapping("/{topicId}/messages/{messageId}")
     public ResponseEntity<Topic> removeMessageFromTopic(@PathVariable Long topicId, @PathVariable Long messageId) {
-        Optional<Topic> topic = topicService.removeMessageFromTopic(topicId, messageId);
+        Optional<Topic> topic = topicMessageAssociationService.removeMessageFromTopic(topicId, messageId);
         return topic.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +38,7 @@ public class TopicService {
     private static final Logger logger = LoggerFactory.getLogger(TopicService.class);
 
 
-    // Methods
+
 
     /**
      * Creates a new topic with the given name.
@@ -56,118 +57,38 @@ public class TopicService {
 
 
     /**
-     * Adds a message to a specific topic.
-     *
-     * @param topicId   The ID of the topic.
-     * @param messageId The ID of the message to be added.
-     * @return The updated topic
+     * Get a topic by ID
+     * @param topicId The ID of the topic
      */
-    @Transactional
-    public Optional<Topic> addMessageToTopic(Long topicId, Long messageId) {
-        Optional<Topic> topicOpt = topicRepo.findById(topicId);
-        Optional<Message> messageOpt = messageRepo.findById(messageId);
-
-        if (topicOpt.isPresent() && messageOpt.isPresent()) {
-            Topic topic = topicOpt.get();
-            Message message = messageOpt.get();
-
-            if (!topic.isMessageInTopic(message)) {
-                // Create a new association between topic and message
-                associationService.createAssociation(topic.getId(), message.getId());
-
-                // Add topic to message's associated topic list
-                messageService.addToAssociatedTopic(message, topic);
-
-                // Add message to topic
-                topic.addMessage(message);
-                // topicRepo.save(topic);
-                // messageRepo.save(message);
-
-                logger.info("Successfully added message {} to topic {}", messageId, topicId);
-            }else {
-                logger.warn("Message {} is already in topic {}", messageId, topicId);
-            }
-
-            // Get message index from association table to update the index position of messages
-            updateMessagesIndexing(topicId);
-
-            return Optional.of(topic);
-        }
-
-        if (topicOpt.isEmpty()) {
-            logger.error("Topic {} was not found : ", topicId);
-        }
-        if (messageOpt.isEmpty()) {
-            logger.error("Message {} was not found : ", messageId);
-        }
-
-        return Optional.empty();
+    public Topic getTopic(Long topicId) {
+        logger.debug("Retrieving topic {}", topicId);
+        return topicRepo.findById(topicId).orElse(null);
     }
 
 
-
     /**
-     * Retrieves all messages associated with a specific topic.
+     * Retrieves all messages associated with a specific topic, ordered by position index.
+     *
      * @param topicId The ID of the topic.
+     * @return The list of messages associated with the topic.
      */
-    public Optional<List<Message>> getMessagesInTopic(Long topicId) {
-        Optional<List<Message>> messages = associationService.getMessagesByTopic(topicId);
+    public Optional<List<Message>> getMessagesByTopic(Long topicId) {
+        List<TopicMessageAssociation> associations = associationService.getAssociationsByTopic(topicId);
+        List<Message> messages = new ArrayList<>();
+
+        for (TopicMessageAssociation association : associations) {
+            messages.add(association.getMessage());
+        };
 
         // Get message index from association table to update the index position of messages
         updateMessagesIndexing(topicId);
 
-        return messages ;
+        logger.info("Retrieved {} messages from association", messages.size());
+
+        return Optional.of(messages) ;
     }
 
 
-
-    /**
-     * Removes a message from a specific topic.
-     *
-     * @param topicId   The ID of the topic.
-     * @param messageId The ID of the message to be removed.
-     * @return The updated topic
-     */
-    @Transactional
-    public Optional<Topic> removeMessageFromTopic(Long topicId, Long messageId) {
-        Optional<Topic> topicOpt = topicRepo.findById(topicId);
-        Optional<Message> messageOpt = messageRepo.findById(messageId);
-
-        if (topicOpt.isPresent() && messageOpt.isPresent()) {
-            Topic topic = topicOpt.get();
-            Message message = messageOpt.get();
-
-            // Delete the association between message and topic
-            associationService.removeAssociation(topic.getId(), message.getId());
-
-            // Remove topic from message's associated topic list
-            messageService.removeFromAssociatedTopic(message, topic);
-
-            // Remove message from the specified topic
-            topic.removeMessage(message);
-
-            // Save topic
-            topicRepo.save(topic);
-            logger.info("Successfully removed message {} from topic {}", messageId, topicId);
-
-            // Delete message if it is not in any other topics
-            messageService.safeDeleteMessageIfOrphanedInTopic(messageId);
-
-            // Get message index from association table to update the index position of messages
-            updateMessagesIndexing(topicId);
-
-            return Optional.of(topic);
-        }
-
-        if (topicOpt.isEmpty()) {
-            logger.error("Topic not found with ID: {}", topicId);
-        }
-        if (messageOpt.isEmpty()) {
-            logger.error("Message not found with ID: {}", messageId);
-        }
-
-        return Optional.empty();
-    }
 
 
     /**

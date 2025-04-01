@@ -23,14 +23,8 @@ public class Message {
     @JsonBackReference
     private Queue queue = null;
 
-    @ManyToMany
-    @JoinTable(
-            name = "message_topic",
-            joinColumns = @JoinColumn(name = "message_id"),
-            inverseJoinColumns = @JoinColumn(name = "topic_id")
-    )
-    @JsonBackReference
-    private Set<Topic> associatedTopics = new HashSet<>();  // All the topic
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<TopicMessageAssociation> topicAssociations = new HashSet<>();
 
     // message meta data
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm", timezone = "Europe/Paris") // Format how the date is displayed
@@ -76,7 +70,7 @@ public class Message {
         return queue;
     }
 
-    public Set<Topic> getAssociatedTopics() { return associatedTopics; }
+    public Set<TopicMessageAssociation> getTopicAssociations() { return topicAssociations; }
 
     public int getIndexInTopic() {
         return indexInTopic;
@@ -96,8 +90,8 @@ public class Message {
         this.queue = queue;
     }
 
-    public void setAssociatedTopics(Set<Topic> topics) {
-        this.associatedTopics = topics;
+    public void setTopicAssociations(Set<TopicMessageAssociation> topics) {
+        this.topicAssociations = topics;
     }
 
     public void setIndexInTopic(int indexInTopic) {
@@ -113,5 +107,6 @@ public class Message {
             this.firstAccessedAt = LocalDateTime.now();
         }
     }
+
 
 }
