@@ -13,8 +13,6 @@ import demo.repository.MessageRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,8 +31,6 @@ public class TopicMessageAssociationService {
     @Autowired
     private MessageRepository messageRepo;
 
-    @Autowired
-    private TopicService topicService;
 
     private static final Logger logger = LoggerFactory.getLogger(TopicMessageAssociationService.class);
 
@@ -150,7 +146,7 @@ public class TopicMessageAssociationService {
         associationRepo.decrementPositionsStartingFrom(topicId, deletedPosition);
         logger.debug("Reorganized positions for topic {}", topicId);
 
-        return Optional.of(topicService.getTopic(topicId));
+        return topicRepo.findById(topicId);
     }
 
 

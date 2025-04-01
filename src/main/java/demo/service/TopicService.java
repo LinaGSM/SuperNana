@@ -3,6 +3,7 @@ package demo.service;
 import demo.model.Message;
 import demo.model.Topic;
 import demo.repository.MessageRepository;
+import demo.repository.TopicMessageAssociationRepository;
 import demo.repository.TopicRepository;
 import demo.model.TopicMessageAssociation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,8 @@ public class TopicService {
     private MessageRepository messageRepo;
 
     @Autowired
-    private TopicMessageAssociationService associationService;
+    private TopicMessageAssociationRepository topicMessageAssociationRepo;
 
-    @Autowired
-    private MessageService messageService;
 
     private static final Logger logger = LoggerFactory.getLogger(TopicService.class);
 
@@ -73,7 +72,7 @@ public class TopicService {
      * @return The list of messages associated with the topic.
      */
     public Optional<List<Message>> getMessagesByTopic(Long topicId) {
-        List<TopicMessageAssociation> associations = associationService.getAssociationsByTopic(topicId);
+        List<TopicMessageAssociation> associations =  topicMessageAssociationRepo.findByTopicId(topicId);
         List<Message> messages = new ArrayList<>();
 
         for (TopicMessageAssociation association : associations) {
@@ -104,7 +103,7 @@ public class TopicService {
      * @param topicId The ID of the topic for which message indexes need to be updated.
      */
     public void updateMessagesIndexing(Long topicId) {
-        List<TopicMessageAssociation> associations = associationService.getAssociationsByTopic(topicId);
+        List<TopicMessageAssociation> associations = topicMessageAssociationRepo.findByTopicIdOrderByPositionIndexAsc(topicId);
 
         for (TopicMessageAssociation association : associations) {
             association.getMessage().setIndexInTopic(association.getPositionIndex());
