@@ -1,6 +1,8 @@
 package demo.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -16,15 +18,6 @@ public class Message {
 
     private String text;
     private boolean isRead = false;
-    private int indexInTopic;
-
-    @ManyToOne
-    @JoinColumn(name = "queue_id")
-    @JsonBackReference
-    private Queue queue = null;
-
-    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<TopicMessageAssociation> topicAssociations = new HashSet<>();
 
     // message meta data
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm", timezone = "Europe/Paris") // Format how the date is displayed
@@ -34,6 +27,19 @@ public class Message {
     private LocalDateTime firstAccessedAt;
 
     private int readCount = 0;
+
+    @ManyToOne
+    @JoinColumn(name = "queue_id")
+    @JsonBackReference
+    private Queue queue = null;
+
+    private int indexInTopic;
+
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<TopicMessageAssociation> topicAssociations = new HashSet<>();
+
+
 
 
     // Constructors

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import demo.model.Message;
 import demo.model.Topic;
+import demo.dto.TopicDTO;
 import demo.service.TopicService;
 import demo.service.TopicMessageAssociationService;
 
@@ -38,18 +39,11 @@ public class TopicController {
     }
 
 
-    /**
-     * Adds a message to a specific topic.
-     *
-     * @param topicId   The ID of the topic.
-     * @param messageId The ID of the message to be added.
-     * @return The updated topic
-     */
-    @PostMapping("/{topicId}/messages/{messageId}")
-    public ResponseEntity<Topic> addMessageToTopic(@PathVariable Long topicId, @PathVariable Long messageId) {
-        Optional<Topic> topic = topicMessageAssociationService.addMessageToTopic(topicId, messageId);
-        return topic.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+    @GetMapping("/{topicId}")
+    public ResponseEntity<TopicDTO> getTopic(@PathVariable Long topicId) {
+        Optional<TopicDTO> topicDTO = topicService.getTopicWithMessages(topicId);
+        return topicDTO.map((value) -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
 
@@ -63,6 +57,22 @@ public class TopicController {
         return messages.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
+
+
+    /**
+     * Adds an existing message to a specific topic.
+     *
+     * @param topicId   The ID of the topic.
+     * @param messageId The ID of the message to be added.
+     * @return The updated topic
+     */
+    @PostMapping("/{topicId}/messages/{messageId}")
+    public ResponseEntity<Topic> addMessageToTopic(@PathVariable Long topicId, @PathVariable Long messageId) {
+        Optional<Topic> topic = topicMessageAssociationService.addMessageToTopic(topicId, messageId);
+        return topic.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+    }
+
 
 
     /**

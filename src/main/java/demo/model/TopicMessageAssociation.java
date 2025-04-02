@@ -1,5 +1,6 @@
 package demo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -10,11 +11,13 @@ public class TopicMessageAssociation {
     private TopicMessageKey id;
 
     @ManyToOne
+    @JsonBackReference
     @MapsId("topicId")
     @JoinColumn(name = "topic_id")
     private Topic topic;
 
     @ManyToOne
+    @JsonBackReference
     @MapsId("messageId")
     @JoinColumn(name = "message_id")
     private Message message;

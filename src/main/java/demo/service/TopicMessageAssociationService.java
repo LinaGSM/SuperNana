@@ -53,13 +53,13 @@ public class TopicMessageAssociationService {
         Topic topic = topicRepo.findById(topicId)
                 .orElseThrow(() -> {
                     logger.error("Topic with id was not found : {}", topicId);
-                    return null;
+                    return new RuntimeException("Topic with id "+ topicId +" was not found" );
                 });
 
         Message message = messageRepo.findById(messageId)
                 .orElseThrow(() -> {
                     logger.error("Message with id was not found : {}", messageId);
-                    return null ;
+                    return new IllegalArgumentException("Message with id "+ messageId +" was not found") ;
                 });
 
         int nextPosition = associationRepo.countByTopicId(topicId) + 1;

@@ -1,9 +1,9 @@
 package demo.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
+
+import java.util.*;
 
 @Entity
 public class Topic {
@@ -14,16 +14,14 @@ public class Topic {
     private String name;
 
     @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
+    @JsonIgnore
     private Set<TopicMessageAssociation> messageAssociations = new HashSet<>();
 
 
     // Constructors
-    public Topic() {}
+    public Topic() { }
 
-    public Topic(String name) {
-        this.name = name;
-    }
+    public Topic(String name) { this.name = name; }
 
 
     // Getters
@@ -38,6 +36,8 @@ public class Topic {
     }
 
 
+
+
     // Setters
     public void setId(Long id) { this.id = id; }
 
@@ -46,6 +46,9 @@ public class Topic {
     public void setMessages(Set<TopicMessageAssociation>  messageAssociations) {
         this.messageAssociations = messageAssociations;
     }
+
+
+
 
 
 }
