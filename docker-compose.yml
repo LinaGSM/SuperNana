@@ -58,7 +58,7 @@ services:
       mydatabase:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://mydatabase:5432/mydatabase
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5436/mydatabase
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=123
     networks:

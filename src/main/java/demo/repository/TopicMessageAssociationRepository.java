@@ -52,4 +52,7 @@ public interface TopicMessageAssociationRepository extends CrudRepository<TopicM
     void decrementPositionsBetween(@Param("topicId") Long topicId,
                                    @Param("start") int start,
                                    @Param("end") int end);
+
+    // Verify the existence of an association between a topic and a message
+    boolean existsByTopicIdAndMessageId(Long topicId, Long messageId);
 }

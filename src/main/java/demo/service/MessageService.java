@@ -1,6 +1,5 @@
 package demo.service;
 
-import demo.model.Topic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,7 @@ public class MessageService {
 
 
 
-    // Methods
+
 
     /* -------------------------------
        Basic Methods
@@ -56,7 +55,8 @@ public class MessageService {
 
 
     /**
-     * Deletes a message from the system and logs deletion statistics.
+     * Deletes a message from the system
+     * Logs deletion statistics.
      *
      * @param message The message to delete
      * @throws IllegalArgumentException if the message is null
@@ -137,29 +137,6 @@ public class MessageService {
        ------------------------------- */
 
 
-
-    /**
-     * Adds a topic to the list of topics associated with a given message.
-     *
-     * @param message The message to which the topic should be linked.
-     * @param topic The topic to associate with the message.
-     */
-    public void addToAssociatedTopic(Message message, Topic topic) {
-        message.getAssociatedTopics().add(topic);
-    }
-
-
-    /**
-     * Removes a topic from the list of topics associated with a given message.
-     *
-     * @param message The message from which the topic should be removed.
-     * @param topic The topic to disassociate from the message.
-     */
-    public void removeFromAssociatedTopic(Message message, Topic topic) {
-        message.getAssociatedTopics().remove(topic);
-    }
-
-
     /**
      * Safely deletes a message only if it's not associated with any topics.
      *
@@ -174,7 +151,7 @@ public class MessageService {
                     return new IllegalArgumentException("Message not found");
                 });
 
-        if (message.getAssociatedTopics().isEmpty()) {
+        if (message.getTopicAssociations().isEmpty()) {
             logger.debug("Message {} is not associated with any topics - deleting", messageId);
 
             // delete message
